@@ -52,11 +52,11 @@ SCAN2CAP = {
 }
 
 
-# TRAIN_R2R_RxR = {
-#     "annotation_path": "path-to-train_r2r_rxr.json",
-#     "data_path": "",
-#     "tag": "train_r2r_rxr"
-# }
+TRAIN_R2R_RxR = {
+    "annotation_path": "path-to-train_r2r_rxr.json",
+    "data_path": "",
+    "tag": "train_r2r_rxr"
+}
 
 
 # TRAIN_R2R_RxR_EXTRA = {

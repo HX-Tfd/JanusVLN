@@ -9,6 +9,8 @@ from tqdm import tqdm
 import random
 import argparse 
 
+from pathlib import Path
+
 max_history_images = 8
 
 def process_episode_scalevln(ep, img_root, act_map):
@@ -124,6 +126,8 @@ def main():
 
     all_results = []
 
+    data_root = Path("/iopsstor/scratch/cscs/hxi/JanusVLN_Trajectory_Data")
+
     # --- ScaleVLN Dataset ---
     img_root_scalevln = "data/trajectory_data/ScaleVLN/images"
     json_path_scalevln = "data/trajectory_data/ScaleVLN/annotations.json"
@@ -140,12 +144,12 @@ def main():
     act_map_dagger_rxr = ["STOP", "MOVE_FORWARD", "TURN_LEFT", "TURN_RIGHT"]
 
     # --- R2R Dataset ---
-    img_root_r2r = "data/trajectory_data/R2R/train"
-    json_path_r2r = "data/datasets/r2r/train/train.json.gz"
+    img_root_r2r = data_root / "trajectory_data/R2R/train"
+    json_path_r2r = data_root / "datasets/r2r/train/train.json.gz"
     
     # --- RxR Dataset ---
-    img_root_rxr = "data/trajectory_data/RxR/train"
-    json_path_rxr = "data/datasets/rxr/train/train_guide.json.gz"
+    img_root_rxr = data_root / "trajectory_data/RxR/train"
+    json_path_rxr = data_root / "datasets/rxr/train/train_guide.json.gz"
 
     print("Loading JSON data...")
 

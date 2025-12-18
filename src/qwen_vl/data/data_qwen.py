@@ -18,7 +18,7 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 from PIL import Image
-from decord import VideoReader
+import av
 import transformers
 
 from . import data_list
@@ -288,13 +288,27 @@ class LazySupervisedDataset(Dataset):
             "images_vggt": images_vggt
         }
 
+    def _read_video_with_av(self, video_file):
+        """Load video frames with PyAV and return fps plus RGB frames."""
+        container = av.open(video_file)
+        stream = container.streams.video[0]
+        # Prefer average_rate; fall back to duration-based estimate.
+        fps = float(stream.average_rate) if stream.average_rate is not None else None
+        frames = [frame.to_ndarray(format="rgb24") for frame in container.decode(stream)]
+        total_frames = len(frames)
+        if fps is None and stream.duration is not None and stream.time_base is not None:
+            duration_seconds = float(stream.duration * stream.time_base)
+            fps = total_frames / duration_seconds if duration_seconds > 0 else None
+        fps = fps or 1.0  # last-resort fallback to avoid zero division
+        container.close()
+        return fps, frames
+
     def process_video(self, video_file):
         if not os.path.exists(video_file):
             print(f"File not exist: {video_file}")
-        vr = VideoReader(video_file, num_threads=4)
-        total_frames = len(vr)
-        avg_fps = vr.get_avg_fps()
-        video_length = total_frames / avg_fps
+        fps, frames = self._read_video_with_av(video_file)
+        total_frames = len(frames)
+        video_length = total_frames / fps
         interval = getattr(self.data_args, "base_interval", 4)
 
         num_frames_to_sample = round(video_length / interval)
@@ -306,8 +320,9 @@ class LazySupervisedDataset(Dataset):
         )
         frame_idx = np.linspace(0, total_frames - 1, target_frames, dtype=int)
         frame_idx = np.unique(frame_idx)
-        video = vr.get_batch(frame_idx).asnumpy()
-        fps = len(frame_idx) / video_length
+        sampled_frames = [frames[i] for i in frame_idx]
+        video = np.stack(sampled_frames, axis=0)
+        fps = len(frame_idx) / video_length if video_length > 0 else fps
         processor = copy.deepcopy(self.data_args.image_processor)
         processor.max_pixels = self.data_args.video_max_frame_pixels
         processor.min_pixels = self.data_args.video_min_frame_pixels
@@ -388,13 +403,11 @@ class LazySupervisedDataset(Dataset):
             images = [frame_files[i] for i in frame_idx]
             images = [Image.open(frame).convert("RGB") for frame in images]
         elif any([video_file.endswith(ext) for ext in [".mp4", ".avi", ".mov"]]):
-            vr = VideoReader(video_file, num_threads=4)
-            total_frames = len(vr)
-            avg_fps = vr.get_avg_fps()
-            frame_idx = get_frame_indices(total_frames, avg_fps)
-            video = vr.get_batch(frame_idx).asnumpy()
-            
-            images = [Image.fromarray(frame).convert("RGB") for frame in video]
+            fps, frames = self._read_video_with_av(video_file)
+            total_frames = len(frames)
+            frame_idx = get_frame_indices(total_frames, fps)
+            frames = [frames[i] for i in frame_idx]
+            images = [Image.fromarray(frame).convert("RGB") for frame in frames]
         return images
 
     def _get_item(self, i) -> Dict[str, torch.Tensor]:
