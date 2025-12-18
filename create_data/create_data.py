@@ -144,12 +144,12 @@ def main():
     act_map_dagger_rxr = ["STOP", "MOVE_FORWARD", "TURN_LEFT", "TURN_RIGHT"]
 
     # --- R2R Dataset ---
-    img_root_r2r = data_root / "trajectory_data/R2R/train"
-    json_path_r2r = data_root / "datasets/r2r/train/train.json.gz"
+    img_root_r2r = data_root / "trajectory_data/R2R-CE-640x480/images" # "trajectory_data/R2R/train"
+    json_path_r2r = data_root / "datasets/R2R_VLNCE_v1-3_preprocessed/train/train.json.gz" # "datasets/r2r/train/train.json.gz"
     
     # --- RxR Dataset ---
-    img_root_rxr = data_root / "trajectory_data/RxR/train"
-    json_path_rxr = data_root / "datasets/rxr/train/train_guide.json.gz"
+    # img_root_rxr = data_root / "trajectory_data/RxR/train"
+    # json_path_rxr = data_root / "datasets/rxr/train/train_guide.json.gz"
 
     print("Loading JSON data...")
 
@@ -167,8 +167,8 @@ def main():
     with gzip.open(json_path_r2r, 'rt', encoding='utf-8') as f:
         data_r2r = json.load(f)
 
-    with gzip.open(json_path_rxr, 'rt', encoding='utf-8') as f:
-        data_rxr = json.load(f)
+    # with gzip.open(json_path_rxr, 'rt', encoding='utf-8') as f:
+        # data_rxr = json.load(f)
     print("JSON data loaded.")
         
     with concurrent.futures.ProcessPoolExecutor() as executor:
@@ -204,12 +204,12 @@ def main():
         print(f"Finished R2R. Total samples: {len(all_results)}")
 
         # --- Process RxR ---
-        print("\nProcessing RxR dataset...")
-        p_process_rxr = partial(process_episode_vlnce, img_root=img_root_rxr)
-        results_iterator = tqdm(executor.map(p_process_rxr, data_rxr['episodes']), total=len(data_rxr['episodes']))
-        for episode_res in results_iterator:
-            all_results.extend(episode_res)
-        print(f"Finished RxR. Total samples: {len(all_results)}")
+        # print("\nProcessing RxR dataset...")
+        # p_process_rxr = partial(process_episode_vlnce, img_root=img_root_rxr)
+        # results_iterator = tqdm(executor.map(p_process_rxr, data_rxr['episodes']), total=len(data_rxr['episodes']))
+        # for episode_res in results_iterator:
+            # all_results.extend(episode_res)
+        # print(f"Finished RxR. Total samples: {len(all_results)}")
 
     if args.use_extra_data:
         output_path = "train_r2r_rxr_extra.json"
