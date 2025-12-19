@@ -53,9 +53,10 @@ SCAN2CAP = {
 
 
 TRAIN_R2R_RxR = {
-    "annotation_path": "path-to-train_r2r_rxr.json",
+    "annotation_path": "/iopsstor/scratch/cscs/jiaqchen/lsai_proj/src/JanusVLN/train_r2r_rxr.json",
     "data_path": "",
-    "tag": "train_r2r_rxr"
+    "tag": "train_r2r_rxr",
+    "sampling_rate": 0.01
 }
 
 
@@ -66,16 +67,16 @@ TRAIN_R2R_RxR = {
 # }
 
 data_dict = {
-    "cambrian_737k": CAMBRIAN_737K,
-    "mp_doc": MP_DOC,
-    "clevr_mc": CLEVR_MC,
-    "videochatgpt": VIDEOCHATGPT,
-    "spar": SPAR,
-    "llava_hound": LLAVA_HOUND,
-    "scannet_det": SCANNET_DET,
-    "scanrefer": SCANREFER,
-    "scan2cap": SCAN2CAP,
-    # "train_r2r_rxr": TRAIN_R2R_RxR,
+    # "cambrian_737k": CAMBRIAN_737K,
+    # "mp_doc": MP_DOC,
+    # "clevr_mc": CLEVR_MC,
+    # "videochatgpt": VIDEOCHATGPT,
+    # "spar": SPAR,
+    # "llava_hound": LLAVA_HOUND,
+    # "scannet_det": SCANNET_DET,
+    # "scanrefer": SCANREFER,
+    # "scan2cap": SCAN2CAP,
+    "train_r2r_rxr": TRAIN_R2R_RxR,
     # "train_r2r_rxr_extra": TRAIN_R2R_RxR_EXTRA
 }
 

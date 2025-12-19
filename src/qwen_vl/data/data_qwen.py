@@ -340,6 +340,9 @@ class LazySupervisedDataset(Dataset):
     
 
     def __getitem__(self, i) -> Dict[str, torch.Tensor]:
+        import sys
+        print(f"[DEBUG] Loading sample {i} (rank {torch.distributed.get_rank() if torch.distributed.is_initialized() else 0})", flush=True)
+        sys.stdout.flush()
         num_base_retries = 3
         num_final_retries = 30
 
@@ -347,6 +350,8 @@ class LazySupervisedDataset(Dataset):
         for attempt_idx in range(num_base_retries):
             try:
                 sample = self._get_item(i)
+                print(f"[DEBUG] Successfully loaded sample {i}", flush=True)
+                sys.stdout.flush()
                 return sample
             except Exception as e:
                 # sleep 1s in case it is a cloud disk issue
@@ -411,6 +416,9 @@ class LazySupervisedDataset(Dataset):
         return images
 
     def _get_item(self, i) -> Dict[str, torch.Tensor]:
+        import sys
+        print(f"[DEBUG] _get_item: Starting to process sample {i}", flush=True)
+        sys.stdout.flush()
         sources = self.list_data_dict[i]
         if isinstance(i, int):
             sources = [sources]
@@ -418,6 +426,8 @@ class LazySupervisedDataset(Dataset):
         video = None
         
         if "video" in sources[0]:
+            print(f"[DEBUG] _get_item: Reading video images for sample {i}", flush=True)
+            sys.stdout.flush()
             sources[0]["images"] = self.read_video_images(sources[0])
             num_image = len(sources[0]["images"])
             sources[0]["conversations"][0]["value"] = sources[0]["conversations"][0]["value"].replace(
@@ -436,6 +446,8 @@ class LazySupervisedDataset(Dataset):
 
         # notice that we use images as the tag
         if "image" in sources[0]:
+            print(f"[DEBUG] _get_item: Processing {len(self.list_data_dict[i]['image'])} images for sample {i}", flush=True)
+            sys.stdout.flush()
             image_folder = self.list_data_dict[i]["data_path"]
             image_file = self.list_data_dict[i]["image"]
             if isinstance(image_file, List):
@@ -577,6 +589,9 @@ class LazySupervisedDataset(Dataset):
             data_dict["video_grid_thw"] = grid_thw
         
         data_dict["tag"] = self.list_data_dict[i].get("tag", "2d")
+        import sys
+        print(f"[DEBUG] _get_item: Finished processing sample {i}", flush=True)
+        sys.stdout.flush()
         return data_dict
 
 

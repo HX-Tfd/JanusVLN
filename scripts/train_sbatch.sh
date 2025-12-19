@@ -1,13 +1,13 @@
 #!/bin/bash
-#SBATCH --job-name=janusvln_train
+#SBATCH --job-name=16nodes
 #SBATCH --account=a144
-#SBATCH --output=slurm-janusvln-train-%j.out
-#SBATCH --error=slurm-janusvln-train-%j.err
-#SBATCH --nodes=1
-#SBATCH --ntasks=1
+#SBATCH --output=slurm-janusvln-16nodes-%j.out
+#SBATCH --error=slurm-janusvln-16nodes-%j.err
+#SBATCH --nodes=16
+#SBATCH --ntasks=16
 #SBATCH --gpus-per-node=4
-#SBATCH --cpus-per-task=32
-#SBATCH --time=12:00:00
+#SBATCH --cpus-per-task=64
+#SBATCH --time=2:00:00
 #SBATCH --partition=normal
 #SBATCH --environment=/users/jiaqchen/.edf/faive2lerobot.toml
 #SBATCH --requeue
@@ -27,6 +27,10 @@ echo "Job started at: $(date)"
 echo "Job ID: $SLURM_JOB_ID"
 echo "Working directory: $(pwd)"
 
+echo "cpus-per-task: $SLURM_CPUS_PER_TASK"
+echo "tasks-per-node: $SLURM_NTASKS_PER_NODE"
+echo "num-tasks: $SLURM_NTASKS"
+
 # Check some specs
 free -h
 nvidia-smi --query-gpu=memory.total --format=csv
@@ -45,7 +49,7 @@ echo "[sbatch-master] Training on single node with $NPROC_PER_NODE GPUs"
 # Model and output paths
 MODEL_PATH="Qwen/Qwen2.5-VL-7B-Instruct"
 VGGT_MODEL_PATH="facebook/VGGT-1B"
-OUTPUT_DIR="./JanusVLN_Base"
+OUTPUT_DIR="./JanusVLN_Base_16nodes"
 CACHE_DIR="./cache"
 DATASETS="train_r2r_rxr"
 
@@ -57,13 +61,13 @@ echo "OUTPUT_DIR: $OUTPUT_DIR"
 
 # NCCL configuration for single-node multi-GPU training
 export NCCL_NVLS_ENABLE=0
-export NCCL_IB_DISABLE=1          # Disable InfiniBand
-export NCCL_P2P_DISABLE=0         # Enable P2P (PCIe) for single-node
-export NCCL_SHM_DISABLE=0         # Enable shared memory (important for single-node)
-export NCCL_NET_GDR_LEVEL=0       # Disable GPU Direct RDMA
-export NCCL_DEBUG=WARN
-unset NCCL_NET
-export NCCL_SOCKET_IFNAME=lo      # Use loopback for single-node
+# export NCCL_IB_DISABLE=1          # Disable InfiniBand
+# export NCCL_P2P_DISABLE=0         # Enable P2P (PCIe) for single-node
+# export NCCL_SHM_DISABLE=0         # Enable shared memory (important for single-node)
+# export NCCL_NET_GDR_LEVEL=0       # Disable GPU Direct RDMA
+# export NCCL_DEBUG=WARN
+# unset NCCL_NET
+# export NCCL_SOCKET_IFNAME=lo      # Use loopback for single-node
 
 # DeepSpeed and training command
 CMD="
@@ -110,9 +114,9 @@ python -m torch.distributed.run \
     --logging_steps 10 \
     --save_steps 1000 \
     --save_total_limit 1 \
-    --deepspeed scripts/zero3.json \
+    --deepspeed scripts/zero2.json \
     --gradient_checkpointing \
-    --dataloader_num_workers 8 \
+    --dataloader_num_workers 16 \
     --group_by_modality_length true \
     --seed 42 \
     --report_to none \

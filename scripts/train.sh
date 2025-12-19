@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# Activate the lsai environment
+source activate lsai
+
+# Debug: Check which Python and torchrun are being used
+echo "Python: $(which python)"
+echo "Python version: $(python --version)"
+echo "Torchrun: $(which torchrun)"
+
 MASTER_ADDR="127.0.0.1"                    
 MASTER_PORT=$(shuf -i 20000-29999 -n 1)     
 NPROC_PER_NODE=$(nvidia-smi --list-gpus | wc -l)  
@@ -18,15 +26,16 @@ echo "DATASETS: $DATASETS"
 # NCCL configuration for single-node multi-GPU training
 # Since MASTER_ADDR=127.0.0.1, we don't need network - use shared memory/PCIe
 export NCCL_NVLS_ENABLE=0
-export NCCL_IB_DISABLE=1          # Disable InfiniBand
-export NCCL_P2P_DISABLE=0         # Enable P2P (PCIe) for single-node
-export NCCL_SHM_DISABLE=0         # Enable shared memory (important for single-node)
-export NCCL_NET_GDR_LEVEL=0      # Disable GPU Direct RDMA
-export NCCL_DEBUG=WARN
+# export NCCL_IB_DISABLE=1          # Disable InfiniBand
+# export NCCL_P2P_DISABLE=0         # Enable P2P (PCIe) for single-node
+# export NCCL_SHM_DISABLE=0         # Enable shared memory (important for single-node)
+# export NCCL_NET_GDR_LEVEL=0      # Disable GPU Direct RDMA
+# export NCCL_DEBUG=WARN
 # Force NCCL to skip network plugins and use local communication only
-unset NCCL_NET
-export NCCL_SOCKET_IFNAME=lo      # Use loopback interface for single-node
-torchrun --nproc_per_node=$NPROC_PER_NODE \
+# unset NCCL_NET
+# export NCCL_SOCKET_IFNAME=lo      # Use loopback interface for single-node
+# torchrun --nproc_per_node=$NPROC_PER_NODE \
+python -m torch.distributed.run --nproc_per_node=$NPROC_PER_NODE \
             --master_addr=$MASTER_ADDR \
             --master_port=$MASTER_PORT \
             src/qwen_vl/train/train_qwen.py \

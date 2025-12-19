@@ -144,8 +144,8 @@ def main():
     act_map_dagger_rxr = ["STOP", "MOVE_FORWARD", "TURN_LEFT", "TURN_RIGHT"]
 
     # --- R2R Dataset ---
-    img_root_r2r = data_root / "trajectory_data/R2R-CE-640x480/images" # "trajectory_data/R2R/train"
-    json_path_r2r = data_root / "datasets/R2R_VLNCE_v1-3_preprocessed/train/train.json.gz" # "datasets/r2r/train/train.json.gz"
+    img_root_r2r = data_root / "trajectory_data/R2R-CE-640x480/train"
+    json_path_r2r = data_root / "datasets/R2R_VLNCE_v1-3_preprocessed/train/train.json.gz"
     
     # --- RxR Dataset ---
     # img_root_rxr = data_root / "trajectory_data/RxR/train"

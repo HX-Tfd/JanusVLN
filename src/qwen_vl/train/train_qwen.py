@@ -172,9 +172,17 @@ def train(attn_implementation="flash_attention_2"):
 
     if list(pathlib.Path(training_args.output_dir).glob("checkpoint-*")):
         logging.info("checkpoint found, resume training")
+        print("[DEBUG] ===== STARTING TRAINING (RESUME) =====", flush=True)
+        import sys
+        sys.stdout.flush()
         trainer.train(resume_from_checkpoint=True)
     else:
+        print("[DEBUG] ===== STARTING TRAINING (FROM SCRATCH) =====", flush=True)
+        import sys
+        sys.stdout.flush()
         trainer.train()
+    print("[DEBUG] ===== TRAINING COMPLETED =====", flush=True)
+    sys.stdout.flush()
     trainer.save_state()
     data_args.image_processor.save_pretrained(training_args.output_dir)
 
